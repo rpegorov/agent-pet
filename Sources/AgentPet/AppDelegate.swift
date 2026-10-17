@@ -4,6 +4,7 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let store = PetStore()
     private let quiet = QuietMode()
+    private let displays = DisplaySettings()
     private var overlay: OverlayController?
     private var coordinator: OverlayCoordinator?
     private var demo: DemoFeeder?
@@ -13,14 +14,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let demo = DemoFeeder(store: store)
-        let menu = OverlayMenu(store: store, quiet: quiet, launcher: NewSessionLauncher(), runDemo: { demo.run() })
+        let menu = OverlayMenu(store: store, quiet: quiet, displays: displays, launcher: NewSessionLauncher(), runDemo: { demo.run() })
         let interactor = OverlayInteractor(store: store, jumper: SessionJumper(), menu: menu)
         self.demo = demo
         self.menu = menu
         self.interactor = interactor
-        overlay = OverlayController(store: store, quiet: quiet, actions: interactor)
+        overlay = OverlayController(store: store, quiet: quiet, settings: displays, actions: interactor)
         coordinator = OverlayCoordinator(store: store, quiet: quiet)
         installStatusItem(menu: menu)
+        displays.start()
         quiet.start()
         store.start()
     }
@@ -28,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         store.stop()
         quiet.stop()
+        displays.stop()
         overlay?.stop()
     }
 

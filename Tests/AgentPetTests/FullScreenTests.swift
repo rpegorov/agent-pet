@@ -6,30 +6,18 @@ struct FullScreenTests {
     private let left = CGRect(x: 0, y: 0, width: 1000, height: 800)
     private let right = CGRect(x: 1000, y: 0, width: 1200, height: 900)
 
-    @Test func windowOnAnotherDisplayDoesNotHideThePanel() {
-        let panel = CGRect(x: 100, y: 500, width: 300, height: 280)
-        #expect(!FullScreenDetector.covers(panelFrame: panel, screens: [left, right], windows: [right]))
+    private typealias Screen = FullScreenDetector.Screen
+
+    @Test func onlyTheDisplayWithAFillingWindowIsCovered() {
+        let screens = [Screen(id: 1, frame: left), Screen(id: 2, frame: right)]
+        #expect(FullScreenDetector.covered(screens: screens, windows: [right]) == [2])
+        #expect(FullScreenDetector.covered(screens: screens, windows: [left, right]) == [1, 2])
+        #expect(FullScreenDetector.covered(screens: screens, windows: []).isEmpty)
     }
 
-    @Test func windowFillingThePanelsDisplayHidesIt() {
-        let panel = CGRect(x: 1500, y: 500, width: 300, height: 280)
-        #expect(FullScreenDetector.covers(panelFrame: panel, screens: [left, right], windows: [right]))
-        #expect(!FullScreenDetector.covers(panelFrame: panel, screens: [left, right], windows: [left]))
-    }
-
-    @Test func partialWindowDoesNotCount() {
-        let panel = CGRect(x: 100, y: 100, width: 300, height: 280)
-        #expect(!FullScreenDetector.covers(panelFrame: panel, screens: [left, right], windows: [CGRect(x: 0, y: 0, width: 900, height: 700)]))
-    }
-
-    @Test func panelStraddlingDisplaysUsesTheLargerOverlap() {
-        let panel = CGRect(x: 900, y: 100, width: 300, height: 280)
-        #expect(FullScreenDetector.covers(panelFrame: panel, screens: [left, right], windows: [right]))
-    }
-
-    @Test func panelOutsideEveryDisplayNeverHides() {
-        let panel = CGRect(x: 5000, y: 5000, width: 300, height: 280)
-        #expect(!FullScreenDetector.covers(panelFrame: panel, screens: [left, right], windows: [left, right]))
+    @Test func partialWindowDoesNotCover() {
+        let screens = [Screen(id: 1, frame: left)]
+        #expect(FullScreenDetector.covered(screens: screens, windows: [CGRect(x: 0, y: 0, width: 900, height: 700)]).isEmpty)
     }
 
     @MainActor @Test func panelStyleShowsOverFullScreenSpaces() {

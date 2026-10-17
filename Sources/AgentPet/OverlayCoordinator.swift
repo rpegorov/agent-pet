@@ -26,6 +26,7 @@ final class OverlayCoordinator {
         }
         beatIfDue(now)
         signal(now)
+        SpriteRegistry.shared.refreshAll()
     }
 
     // Agents only wait for the overlay while it can be seen and clicked.

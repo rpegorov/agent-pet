@@ -62,12 +62,12 @@ final class PetStore {
         sessions.filter { $0.agent == agent }
     }
 
-    func columns() -> [PetColumn] {
+    func columns(showBubbles: Bool = true) -> [PetColumn] {
         pets.map { pet in
             let expanded = expandedAgent == pet.agent
             return PetColumn(
                 agent: pet.agent,
-                hasBubble: bubbles[pet.agent] != nil,
+                hasBubble: showBubbles && bubbles[pet.agent] != nil,
                 listRows: expanded ? SessionListLayout.rowCount(sessions: sessions(of: pet.agent).count) : 0
             )
         }

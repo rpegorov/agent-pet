@@ -12,7 +12,7 @@ final class QuietMode {
     private static let hideOverFullScreenKey = "overlay.hideOverFullScreen"
 
     private(set) var hiddenUntil: Date?
-    private(set) var fullScreenActive = false
+    private(set) var coveredDisplays: Set<UInt32> = []
     private(set) var clickThrough: Bool
     private(set) var answerPermissions: Bool
     private(set) var hideOverFullScreen: Bool
@@ -20,10 +20,17 @@ final class QuietMode {
     @ObservationIgnored private let defaults = UserDefaults.standard
     @ObservationIgnored private var spaceObserver: NSObjectProtocol?
     @ObservationIgnored private var fullScreenCheck: Task<Void, Never>?
-    @ObservationIgnored var panelFrame: () -> NSRect? = { nil }
+    @ObservationIgnored var targetDisplays: () -> Set<UInt32> = { [] }
 
-    /// True while the overlay is invisible, so it must not make noise.
-    var isSuppressed: Bool { hiddenUntil != nil || fullScreenActive }
+    /// True while no panel is visible, so the overlay must not make noise.
+    var isSuppressed: Bool {
+        let targets = targetDisplays()
+        return hiddenUntil != nil || (!targets.isEmpty && targets.isSubset(of: coveredDisplays))
+    }
+
+    func isHidden(on display: UInt32) -> Bool {
+        hiddenUntil != nil || coveredDisplays.contains(display)
+    }
 
     /// Agents may wait for a verdict from the pet only while it can be seen and clicked.
     var canAnswerPermissions: Bool { !isSuppressed && !clickThrough && answerPermissions }
@@ -90,21 +97,21 @@ final class QuietMode {
     // The window list is read off the main thread; one check runs at a time.
     private func checkFullScreen() {
         guard fullScreenCheck == nil else { return }
-        guard hideOverFullScreen, let snapshot = FullScreenDetector.snapshot(panelFrame: panelFrame()) else {
-            setFullScreen(false)
+        guard hideOverFullScreen, let snapshot = FullScreenDetector.snapshot() else {
+            setCovered([])
             return
         }
         fullScreenCheck = Task { [weak self] in
-            let covering = await Task.detached { FullScreenDetector.isCovering(snapshot) }.value
+            let covered = await Task.detached { FullScreenDetector.coveredDisplays(snapshot) }.value
             guard let self, !Task.isCancelled else { return }
-            setFullScreen(covering)
+            setCovered(covered)
             fullScreenCheck = nil
         }
     }
 
-    private func setFullScreen(_ value: Bool) {
-        guard value != fullScreenActive else { return }
-        fullScreenActive = value
+    private func setCovered(_ value: Set<UInt32>) {
+        guard value != coveredDisplays else { return }
+        coveredDisplays = value
         withdrawPresenceIfUnavailable()
     }
 

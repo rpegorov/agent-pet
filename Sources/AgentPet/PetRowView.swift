@@ -6,10 +6,11 @@ struct PetRowView: View {
     private static let transitionDuration = 0.25
 
     let store: PetStore
+    let context: PanelContext
     let actions: any PetActionHandling
 
     var body: some View {
-        let columns = store.columns()
+        let columns = store.columns(showBubbles: context.showsBubbles)
         let popoverHeight = PetRowLayout.maxPopoverHeight(columns)
         HStack(alignment: .bottom, spacing: 0) {
             ForEach(store.pets) { pet in
@@ -31,7 +32,7 @@ struct PetRowView: View {
                     .padding(.bottom, PopoverMetrics.gap)
                     .transition(.opacity)
             }
-            if let bubble = store.bubbles[pet.agent] {
+            if context.showsBubbles, let bubble = store.bubbles[pet.agent] {
                 PermissionBubbleView(bubble: bubble, actions: actions)
                     .id(bubble.id)
                     .padding(.bottom, PopoverMetrics.gap)
@@ -40,7 +41,7 @@ struct PetRowView: View {
             PetView(pet: pet, hops: store.hops[pet.agent] ?? 0, actions: actions)
         }
         .animation(.easeOut(duration: Self.transitionDuration), value: store.expandedAgent == pet.agent)
-        .animation(.easeOut(duration: Self.transitionDuration), value: store.bubbles[pet.agent]?.id)
+        .animation(.easeOut(duration: Self.transitionDuration), value: context.showsBubbles ? store.bubbles[pet.agent]?.id : nil)
         .frame(width: PetMetrics.itemWidth, height: PetMetrics.itemHeight + popoverHeight, alignment: .bottom)
     }
 }

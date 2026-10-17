@@ -5,12 +5,14 @@ import AppKit
 final class OverlayMenu: NSObject, NSMenuDelegate {
     private let store: PetStore
     private let quiet: QuietMode
+    private let displays: DisplaySettings
     private let launcher: NewSessionLauncher
     private let runDemo: () -> Void
 
-    init(store: PetStore, quiet: QuietMode, launcher: NewSessionLauncher, runDemo: @escaping () -> Void) {
+    init(store: PetStore, quiet: QuietMode, displays: DisplaySettings, launcher: NewSessionLauncher, runDemo: @escaping () -> Void) {
         self.store = store
         self.quiet = quiet
+        self.displays = displays
         self.launcher = launcher
         self.runDemo = runDemo
     }
@@ -40,6 +42,7 @@ final class OverlayMenu: NSObject, NSMenuDelegate {
         }
         addNewSessionItems(to: menu)
         menu.addItem(.separator())
+        addDisplayMenu(to: menu)
         addQuietItems(to: menu)
         menu.addItem(.separator())
         if agent == nil {
@@ -78,6 +81,22 @@ final class OverlayMenu: NSObject, NSMenuDelegate {
             submenu.addAction(shown) { [launcher] in launcher.start(agent, in: directory) }
         }
         let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.submenu = submenu
+        menu.addItem(item)
+    }
+
+    private func addDisplayMenu(to menu: NSMenu) {
+        let submenu = NSMenu()
+        let choice = displays.choice
+        submenu.addAction("All displays", checked: choice == .all) { [displays] in displays.select(.all) }
+        submenu.addItem(.separator())
+        for display in displays.displays {
+            let selected = choice == .screen(id: display.id, name: display.name)
+            submenu.addAction(display.name, checked: selected) { [displays] in
+                displays.select(.screen(id: display.id, name: display.name))
+            }
+        }
+        let item = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
         item.submenu = submenu
         menu.addItem(item)
     }
