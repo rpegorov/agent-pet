@@ -77,6 +77,19 @@ With the overlay running, `agent-pet-emit permit` (the PermissionRequest hook) s
 - The overlay's own texts (Deny, In agent, Allow, status labels) are English and not localised; labels that come from agents (tool names, session titles) appear as sent.
 - To turn the bubble off, quit the overlay (the hook then stays silent), or change the `PermissionRequest` command from `permit` to `hook` in the agent's hook config.
 
+## Privacy
+
+agent-pet keeps everything on your Mac and sends nothing over the network.
+
+- **What is written.** `~/.agent-pet/events.jsonl` holds one line per hook event: agent name, session id, mood, a short label (tool name, session title or notification text), the working directory, the hosting app's bundle id, the terminal tty and, for permission requests, a summary of the tool call (at most 200 characters). Prompts, tool output and file contents are not recorded.
+- **Permission requests.** While a request is pending, `~/.agent-pet/permissions/` holds its full tool input (at most 8 KiB). The file is deleted when the request is answered, expires or the hook is killed; leftovers older than 2 minutes are cleaned up.
+- **Access.** The directory is owner-only (0700) and the log is 0600. The log is rotated at 512 KiB, keeping one previous file.
+- **What is read.** The overlay reads the event log, and, to open a Claude Desktop session, the session index in `~/Library/Application Support/Claude/claude-code-sessions` (read only). Selecting a Terminal or iTerm2 tab uses AppleScript and asks macOS for Automation permission once.
+- **System log.** Clicks and jumps are logged under the subsystem `agent-pet` with agent, session id, app and the opened URL; no tool input or paths.
+- **Network.** None outbound. The DSH plugin listens on a loopback-only port and accepts commands only from local processes and the Harness web UI; the overlay talks to it over `127.0.0.1`.
+
+Delete `~/.agent-pet` to remove all recorded data.
+
 ## Uninstall
 
 ```sh
