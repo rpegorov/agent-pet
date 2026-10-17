@@ -1,0 +1,8 @@
+#!/bin/sh
+# Forwards a hook call to the installed agent-pet-emit; silent when agent-pet is not installed.
+emit="$HOME/.local/agent-pet/agent-pet-emit"
+if [ -x "$emit" ]; then
+    exec "$emit" "$@"
+fi
+cat >/dev/null
+exit 0

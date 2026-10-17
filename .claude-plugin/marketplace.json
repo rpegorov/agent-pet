@@ -1,0 +1,14 @@
+{
+  "name": "agent-pet",
+  "description": "A desktop pet that follows your coding agents.",
+  "owner": { "name": "Rostislav Egorov" },
+  "plugins": [
+    {
+      "name": "agent-pet",
+      "source": "./plugins/agent-pet-claude",
+      "description": "Reports Claude Code activity to the agent-pet desktop overlay and relays permission prompts.",
+      "version": "1.0.0",
+      "category": "productivity"
+    }
+  ]
+}

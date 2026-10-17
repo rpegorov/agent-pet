@@ -1,0 +1,17 @@
+{
+  "name": "codex-agent-pet",
+  "version": "1.0.0",
+  "description": "Reports Codex activity to the agent-pet desktop overlay and relays permission prompts.",
+  "author": {
+    "name": "Rostislav Egorov"
+  },
+  "homepage": "https://github.com/rpegorov/agent-pet",
+  "repository": "https://github.com/rpegorov/agent-pet",
+  "license": "MIT",
+  "interface": {
+    "displayName": "Agent Pet",
+    "shortDescription": "Desktop pet that follows Codex",
+    "category": "Productivity"
+  },
+  "hooks": "./hooks.json"
+}

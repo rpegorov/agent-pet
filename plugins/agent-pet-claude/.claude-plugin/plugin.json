@@ -1,0 +1,9 @@
+{
+  "name": "agent-pet",
+  "version": "1.0.0",
+  "description": "Reports Claude Code activity to the agent-pet desktop overlay and relays permission prompts.",
+  "author": { "name": "Rostislav Egorov" },
+  "homepage": "https://github.com/rpegorov/agent-pet",
+  "repository": "https://github.com/rpegorov/agent-pet",
+  "license": "MIT"
+}
