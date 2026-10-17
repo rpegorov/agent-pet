@@ -9,15 +9,18 @@ final class QuietMode {
     static let hideDuration: TimeInterval = 60 * 60
     private static let clickThroughKey = "overlay.clickThrough"
     private static let answerPermissionsKey = "overlay.answerPermissions"
+    private static let hideOverFullScreenKey = "overlay.hideOverFullScreen"
 
     private(set) var hiddenUntil: Date?
     private(set) var fullScreenActive = false
     private(set) var clickThrough: Bool
     private(set) var answerPermissions: Bool
+    private(set) var hideOverFullScreen: Bool
 
     @ObservationIgnored private let defaults = UserDefaults.standard
     @ObservationIgnored private var spaceObserver: NSObjectProtocol?
     @ObservationIgnored private var fullScreenCheck: Task<Void, Never>?
+    @ObservationIgnored var panelFrame: () -> NSRect? = { nil }
 
     /// True while the overlay is invisible, so it must not make noise.
     var isSuppressed: Bool { hiddenUntil != nil || fullScreenActive }
@@ -28,6 +31,7 @@ final class QuietMode {
     init() {
         clickThrough = defaults.bool(forKey: Self.clickThroughKey)
         answerPermissions = defaults.object(forKey: Self.answerPermissionsKey) as? Bool ?? true
+        hideOverFullScreen = defaults.bool(forKey: Self.hideOverFullScreenKey)
     }
 
     func start() {
@@ -70,6 +74,12 @@ final class QuietMode {
         withdrawPresenceIfUnavailable()
     }
 
+    func toggleHideOverFullScreen() {
+        hideOverFullScreen.toggle()
+        defaults.set(hideOverFullScreen, forKey: Self.hideOverFullScreenKey)
+        checkFullScreen()
+    }
+
     func tick(now: Date) {
         if let until = hiddenUntil, now >= until {
             hiddenUntil = nil
@@ -80,7 +90,7 @@ final class QuietMode {
     // The window list is read off the main thread; one check runs at a time.
     private func checkFullScreen() {
         guard fullScreenCheck == nil else { return }
-        guard let snapshot = FullScreenDetector.snapshot() else {
+        guard hideOverFullScreen, let snapshot = FullScreenDetector.snapshot(panelFrame: panelFrame()) else {
             setFullScreen(false)
             return
         }

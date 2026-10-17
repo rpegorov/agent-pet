@@ -29,14 +29,7 @@ final class OverlayController {
             backing: .buffered,
             defer: true
         )
-        panel.level = .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = false
-        panel.isMovableByWindowBackground = false
-        panel.hidesOnDeactivate = false
-        panel.becomesKeyOnlyIfNeeded = true
+        panel.applyOverlayStyle()
         let hosting = OverlayHostingView(rootView: PetRowView(store: store, actions: actions))
         hosting.sizingOptions = []
         panel.contentView = hosting
@@ -45,6 +38,7 @@ final class OverlayController {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.saveAnchor() }
         }
+        quiet.panelFrame = { [panel] in panel.isVisible ? panel.frame : nil }
         installPassThrough()
         observe()
     }

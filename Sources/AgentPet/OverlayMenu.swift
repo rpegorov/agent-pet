@@ -89,6 +89,9 @@ final class OverlayMenu: NSObject, NSMenuDelegate {
             menu.addAction("Hide for 1 hour") { [quiet] in quiet.hide() }
         }
         menu.addAction("Click-through", checked: quiet.clickThrough) { [quiet] in quiet.toggleClickThrough() }
+        menu.addAction("Hide over full-screen apps", checked: quiet.hideOverFullScreen) { [quiet] in
+            quiet.toggleHideOverFullScreen()
+        }
         menu.addAction("Answer permissions from pet", checked: quiet.answerPermissions) { [quiet] in
             quiet.toggleAnswerPermissions()
         }
